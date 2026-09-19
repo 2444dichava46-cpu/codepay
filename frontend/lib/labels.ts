@@ -45,6 +45,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
   PROJECT_COMPLETED: "Projeto concluído",
   PROJECT_CANCELLED: "Projeto cancelado",
   NEW_REVIEW: "Nova avaliação",
+  PAYMENT_RELEASED: "Pagamento liberado",
 };
 
 export const CATEGORIES = [

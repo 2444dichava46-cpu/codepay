@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { createNotification } from "@/lib/notify";
+import { emailNewMessage } from "@/lib/email";
 
 async function getContractForParticipant(contractId: string, userId: string) {
   const contract = await prisma.contract.findUnique({
@@ -106,6 +107,20 @@ export async function POST(
     "NEW_MESSAGE",
     `Nova mensagem de ${session.name} no contrato de "${contract.project.title}".`
   );
+
+  const receiver = await prisma.user.findUnique({
+    where: { id: receiverId },
+    select: { name: true, email: true },
+  });
+  if (receiver) {
+    await emailNewMessage({
+      to: receiver.email,
+      recipientName: receiver.name,
+      senderName: session.name,
+      projectTitle: contract.project.title,
+      contractId: contract.id,
+    });
+  }
 
   return NextResponse.json({ message }, { status: 201 });
 }

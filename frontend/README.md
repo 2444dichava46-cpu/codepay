@@ -22,6 +22,23 @@ Next.js 14 (App Router) + TypeScript + Prisma 5 + SQLite.
 
 ### 2. Funcionalidades implementadas nesta fase
 
+- **Vitrine pública de programadores** (`/developers`): lista pública (sem
+  login) com filtros por tecnologia, avaliação mínima, valor/hora máximo e
+  disponibilidade; ordenada por nota. O CTA "Encontrar programador" da home
+  agora aponta para ela.
+- **Retenção e liberação automática (escrow)**: o valor do contrato fica
+  retido e os 90% do programador passam a `RELEASED` automaticamente quando o
+  cliente aprova a entrega — **somente** se o pagamento estiver confirmado
+  (`PAID`). Sem pagamento confirmado o registro permanece `PENDING` e nada é
+  liberado (verificado em teste: `released=false`).
+- **E-mails transacionais** (integração gerenciada da Emergent/Resend, sem
+  chave do usuário): nova proposta → cliente; nova mensagem → a outra parte;
+  nova entrega → cliente; entrega aprovada → programador; alteração
+  solicitada → programador. Destinatários vêm sempre do banco e os corpos de
+  templates fixos no servidor (`lib/email.ts`), com gate de segurança
+  (`assertSafeEmail`). O envio é assíncrono: as rotas enfileiram e respondem
+  na hora, e um worker drena a fila com espaçamento + retry em caso de 429 —
+  uma falha de e-mail nunca atrasa nem quebra a ação do usuário.
 - **Perfil do programador** (`/profile`): foto (upload real para
   `public/uploads`), nome, título, bio, localização, disponibilidade, valor
   por hora, tecnologias, especialidades, portfólio + botão "Salvar perfil".

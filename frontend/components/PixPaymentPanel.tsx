@@ -86,13 +86,31 @@ export default function PixPaymentPanel({
       {payment && (
         <p style={{ marginBottom: 12 }}>
           <span
-            className={`badge ${payment.status === "PENDING" ? "badge-warn" : payment.status === "PAID" ? "badge-success" : "badge-muted"}`}
+            className={`badge ${payment.status === "PENDING" ? "badge-warn" : payment.status === "PAID" || payment.status === "RELEASED" ? "badge-success" : "badge-muted"}`}
             data-testid="payment-status-badge"
           >
             {PAYMENT_STATUS_LABELS[payment.status] ?? payment.status}
           </span>
         </p>
       )}
+
+      <div className="escrow-box" data-testid="escrow-explainer">
+        <strong>Como funciona a retenção (escrow):</strong> o valor pago pelo cliente fica
+        retido pela Code Pay e os {formatBRL(payment?.developerAmount ?? 0)} do programador são
+        liberados automaticamente quando o cliente aprova a entrega. A liberação só acontece
+        depois que o pagamento é efetivamente confirmado — nenhum valor é liberado sem pagamento
+        confirmado.
+        {payment?.status === "RELEASED" && (
+          <div style={{ marginTop: 8, fontWeight: 600 }} data-testid="escrow-released-note">
+            Valor já liberado ao programador após a aprovação da entrega.
+          </div>
+        )}
+        {payment?.status === "PAID" && (
+          <div style={{ marginTop: 8, fontWeight: 600 }}>
+            Pagamento confirmado e retido — será liberado na aprovação da entrega.
+          </div>
+        )}
+      </div>
 
       {!gatewayConfigured && (
         <div className="warn-box" data-testid="payment-pending-config">

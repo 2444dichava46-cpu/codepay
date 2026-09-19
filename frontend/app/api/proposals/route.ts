@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { emailNewProposal } from "@/lib/email";
+import { formatBRL } from "@/lib/labels";
 
 // POST /api/proposals — DEVELOPER only.
 export async function POST(req: NextRequest) {
@@ -71,6 +73,21 @@ export async function POST(req: NextRequest) {
       message: `Você recebeu uma nova proposta para "${project.title}".`,
     },
   });
+
+  const client = await prisma.user.findUnique({
+    where: { id: project.clientId },
+    select: { name: true, email: true },
+  });
+  if (client) {
+    await emailNewProposal({
+      to: client.email,
+      clientName: client.name,
+      developerName: session.name,
+      projectTitle: project.title,
+      projectId: project.id,
+      amountLabel: formatBRL(amount),
+    });
+  }
 
   return NextResponse.json({ proposal }, { status: 201 });
 }

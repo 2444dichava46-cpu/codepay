@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { createNotification } from "@/lib/notify";
+import { emailRevisionRequested } from "@/lib/email";
 
 // POST /api/deliveries/:id/revision — the CLIENT requests changes on a
 // submitted delivery. The request is registered as a message in the contract
@@ -68,6 +69,19 @@ export async function POST(
     "REVISION_REQUESTED",
     `O cliente solicitou alterações na entrega de "${delivery.project.title}": ${feedback}`
   );
+
+  const developer = await prisma.user.findUnique({
+    where: { id: contract.developerId },
+    select: { name: true, email: true },
+  });
+  if (developer) {
+    await emailRevisionRequested({
+      to: developer.email,
+      developerName: developer.name,
+      projectTitle: delivery.project.title,
+      contractId: contract.id,
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

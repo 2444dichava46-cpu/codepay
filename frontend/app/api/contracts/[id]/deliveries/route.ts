@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { createNotification } from "@/lib/notify";
+import { emailNewDelivery } from "@/lib/email";
 
 // POST /api/contracts/:id/deliveries — the contracted developer submits a delivery.
 export async function POST(
@@ -64,6 +65,20 @@ export async function POST(
     "NEW_DELIVERY",
     `O programador enviou uma entrega para "${contract.project.title}".`
   );
+
+  const [client, developer] = await Promise.all([
+    prisma.user.findUnique({ where: { id: contract.clientId }, select: { name: true, email: true } }),
+    prisma.user.findUnique({ where: { id: contract.developerId }, select: { name: true } }),
+  ]);
+  if (client && developer) {
+    await emailNewDelivery({
+      to: client.email,
+      clientName: client.name,
+      developerName: developer.name,
+      projectTitle: contract.project.title,
+      contractId: contract.id,
+    });
+  }
 
   return NextResponse.json({ delivery }, { status: 201 });
 }

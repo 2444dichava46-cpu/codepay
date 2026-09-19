@@ -17,6 +17,7 @@ export default async function LandingPage() {
         <div className="logo"><span className="mark">&lt;/&gt;</span> Code Pay</div>
         <nav style={{ display: "flex", gap: 20, alignItems: "center" }}>
           <Link href="/projects">Explorar projetos</Link>
+          <Link href="/developers" data-testid="landing-developers-link">Programadores</Link>
           {session ? (
             <Link href="/dashboard" className="btn btn-primary">Meu painel</Link>
           ) : (
@@ -37,7 +38,7 @@ export default async function LandingPage() {
           ideias em projetos reais.
         </p>
         <div style={{ display: "flex", gap: 12 }}>
-          <Link href="/projects" className="btn btn-primary">Encontrar programador</Link>
+          <Link href="/developers" className="btn btn-primary">Encontrar programador</Link>
           <Link
             href={session?.role === "CLIENT" ? "/projects/new" : "/register"}
             className="btn btn-outline"

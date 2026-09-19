@@ -18,6 +18,7 @@ export default function AppHeader({ name, role }: { name: string; role?: string 
       <Link href="/" className="logo"><span className="mark">&lt;/&gt;</span> Code Pay</Link>
       <nav className="app-nav" style={{ display: "flex", gap: 16, alignItems: "center", fontSize: 13.5, flexWrap: "wrap" }}>
         <Link href="/projects">Explorar projetos</Link>
+        <Link href="/developers" data-testid="nav-developers-link">Programadores</Link>
         <Link href="/dashboard">Meu painel</Link>
         <Link href="/messages" data-testid="nav-messages-link">Mensagens</Link>
         {role === "DEVELOPER" && (

@@ -51,9 +51,34 @@ Enums viraram strings validadas (SQLite não suporta enums no Prisma 5).
 - `POST /api/webhooks/mercadopago` → valida assinatura HMAC
   (`MERCADOPAGO_WEBHOOK_SECRET`), consulta o pagamento no MP e move
   PENDING→PAID (nunca por via do cliente).
+- **Escrow**: na aprovação da entrega (`/api/deliveries/[id]/approve`), se o
+  pagamento estiver `PAID` ele vira `RELEASED` e o programador recebe
+  notificação `PAYMENT_RELEASED`. Se não estiver pago, permanece `PENDING` —
+  nada é liberado sem pagamento confirmado.
 - UI: painel de pagamento mostra split (valor, comissão 10%, valor do
-  programador) + aviso claro "Pagamento pendente de configuração" + chave Pix
-  da plataforma (`PLATFORM_PIX_KEY`) para recebimento manual informativo.
+  programador), explicação do escrow, aviso claro "Pagamento pendente de
+  configuração" + chave Pix da plataforma (`PLATFORM_PIX_KEY`).
+
+## E-mails (integração gerenciada Emergent/Resend)
+`lib/email.ts`: `EMERGENT_EMAIL_KEY` + `EMAIL_FROM_NAME="Code Pay"` no `.env`
+(sem chave Resend do usuário). POST para
+`https://integrations.emergentagent.com/api/v1/email/send` com `from_name`
+obrigatório. Eventos: nova proposta, nova mensagem, nova entrega, entrega
+aprovada, alteração solicitada — sempre só para o destinatário do evento.
+Destinatário vem do banco, corpo de template fixo, `assertSafeEmail` em todo
+envio.
+
+**Arquitetura de envio (importante)**: o envio NUNCA acontece no caminho da
+request. As funções de template enfileiram e retornam na hora; um worker drena
+a fila em série com intervalo mínimo de 800ms entre envios e um retry após 5s
+em caso de 429. Motivo: a primeira versão aguardava o provedor dentro da
+request e cada mensagem de chat levava ~4,9s (medido); com a fila caiu para
+~0,19s. O provedor tem cota por janela — se ela estourar, a ação do usuário
+continua normal e o e-mail é apenas registrado/reenviado.
+
+## Vitrine pública
+`/developers` — pública, filtros por tecnologia, avaliação mínima, valor/hora
+e disponibilidade.
 
 ## Segurança
 Todas as APIs checam sessão + papel + propriedade; contrato/mensagens/entregas/
